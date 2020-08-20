@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            div.coordinates{
+              margin-top: 1cm;
+              width: 150px;
+              height: 50px;
+              background-color: azure;
+              text-decoration-style: solid;
+              border-style: solid;
+              border-color: black;
+              }
+          </style>
+    </head>
+    <body>
+        <script>
+            if (navigator.geolocation) {
+                console.log("Geolocation service available..")
+                navigator.geolocation.getCurrentPosition(position => {
+                    console.log(position.coords)
+                    const lat = position.coords.latitude;
+                    const long = position.coords.longitude;
+                    document.getElementById('latitude').textContent = "Latitude: " + lat;
+                    document.getElementById('longitude').textContent = "Longitude: " + long;
+
+                    //send data to server
+                    const data = {lat, long};
+                    const options= {
+                        method: 'POST',
+                        body: JSON.stringify(data),
+                        headers: {"Content-Type": "application/json"}
+                    }
+                    //fetch takes the response from server side
+                    fetch('/track', options).then(function(response){
+                        if(response.ok == true){
+                            console.log(response.json());
+                            return;
+                        }
+                        throw new Error('Request failed.');
+                        
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+
+                }, handleError);
+
+                //Additional methods that keeps tracker on.
+                // navigator.geolocation.watchPosition(showPosition); /
+            }
+            else{
+                 console.log("Geolocation is not supported by this browser.");
+            }
+
+            function handleError(error) {
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        console.log("User denied the request for Geolocation.");
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        console.log("Location information is unavailable.");
+                        break;
+                    case error.TIMEOUT:
+                        console.log("The request to get user location timed out.");
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        console.log("An unknown error occurred.");
+                        break;
+                }
+            }
+        </script>
+
+        <h1 style="margin-top: 2cm;"> Tracking your location..</h1>
+        <div id="latitude" class="coordinates"> </div>
+        <div id="longitude" class="coordinates"> </div>
+        
+    </body>
+</html>
